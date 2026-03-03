@@ -68,7 +68,8 @@ class FeatureQuery:
         self.proxies = proxies
         self.log = (options or {}).get("logger") or NoopLogger()
 
-        validate_search_terms = (options or {}).get("validate_search_terms", True)
+        validate_search_terms = (options or {}).get(
+            "validate_search_terms", True)
         if validate_search_terms:
             _validate_search_terms(collection, search_terms, proxies)
 
@@ -110,7 +111,7 @@ class FeatureQuery:
         )
 
         attempts = 0
-        while attempts < 10:
+        while attempts < 5:
             attempts += 1
             try:
                 request = self.next_request
@@ -178,7 +179,8 @@ class FeatureQuery:
 
     def __set_next_request(self, res: Dict[str, Any]) -> None:
         links = res.get("links") or []
-        next_link = next((link for link in links if link.get("rel") == "next"), None)
+        next_link = next(
+            (link for link in links if link.get("rel") == "next"), None)
         if not next_link:
             self.next_request = None
             return
@@ -225,7 +227,8 @@ def geojson_to_wkt(geojson_in: Union[str, Dict]) -> str:
     """
     Convert a geojson geometry to a WKT string.
     """
-    geojson = json.loads(geojson_in) if isinstance(geojson_in, str) else geojson_in
+    geojson = json.loads(geojson_in) if isinstance(
+        geojson_in, str) else geojson_in
 
     if geojson.get("type") == "Feature":
         geojson = geojson["geometry"]
@@ -233,7 +236,8 @@ def geojson_to_wkt(geojson_in: Union[str, Dict]) -> str:
         geojson = geojson["features"][0]["geometry"]
 
     coordinates = str(
-        tuple(item for sublist in geojson["coordinates"][0] for item in sublist)
+        tuple(item for sublist in geojson["coordinates"][0]
+              for item in sublist)
     )
     paired_coord = ",".join(
         [
@@ -289,7 +293,8 @@ def describe_collection(
     if cached:
         return cached
 
-    session = Credentials.make_session(None, False, Credentials.RETRIES, proxies)
+    session = Credentials.make_session(
+        None, False, Credentials.RETRIES, proxies)
     attempts = 0
     data: Dict[str, Any] = {}
     while attempts < 3:

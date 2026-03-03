@@ -52,9 +52,20 @@ def build_stac_search_payload(
 
     query: Dict[str, Any] = {}
 
+    # CDSE uses specific product:type values; skip filter when legacy/short form is requested.
+    # - sentinel-1-grd: values are IW_GRDH_1S, EW_GRDH_1S, not "GRD".
+    # - cop-dem-glo-*-cog: values are DGE_30-COG / DGE_90-COG, and product:type is not in queryables.
+    collections = payload.get("collections") or []
     product_type = terms.get("productType")
     if product_type:
-        query["product:type"] = {"eq": str(product_type)}
+        pt_str = str(product_type).strip()
+        pt_upper = pt_str.upper()
+        skip_s1_grd = "sentinel-1-grd" in collections and pt_upper == "GRD"
+        skip_copdem = any(
+            c.startswith("cop-dem-glo-") and c.endswith("-cog") for c in collections
+        ) and pt_upper in ("DGE_30", "DGE_90")
+        if not skip_s1_grd and not skip_copdem:
+            query["product:type"] = {"eq": pt_str}
 
     processing_level = terms.get("processingLevel")
     if processing_level:
